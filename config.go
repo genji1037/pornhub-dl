@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"flag"
-	"fmt"
 )
 
 type Config struct {
@@ -12,6 +12,7 @@ type Config struct {
 	Debug      bool
 	ThreadNum  int
 	Socks5     string
+	URLFile    string
 }
 
 func NewConfig() *Config {
@@ -23,14 +24,18 @@ func NewConfig() *Config {
 	flag.BoolVar(&config.Debug, "d", false, "Whether you want to activate debug mode or not")
 	flag.IntVar(&config.ThreadNum, "c", 5, "The amount of threads to use to download")
 	flag.StringVar(&config.Socks5, "s", "", "Specify socks5 proxy address for downloading resources")
+	flag.StringVar(&config.URLFile, "f", "", "Specify file path of URLs, URLs must separate by \\n")
 	flag.Parse()
 	return &config
 }
 
-func (c *Config) Validate() {
+func (c *Config) Validate() error {
 	// Check if parameters are set
-	if c.URL == "" {
-		fmt.Println("Please pass a valid url with the -u parameter.")
-		return
+	if c.URL == "" && c.URLFile == "" {
+		return errors.New("please pass a valid url with the -u parameter or file that contain URLs with the -f parameter")
 	}
+	if c.URL != "" && c.URLFile != "" {
+		return errors.New("both -u -f specified, choose one of them please")
+	}
+	return nil
 }
